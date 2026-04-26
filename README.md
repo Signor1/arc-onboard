@@ -1,6 +1,14 @@
 # Arc Onboard
 
+[![npm version](https://img.shields.io/npm/v/@signordev/arc-onboard.svg?style=flat-square)](https://www.npmjs.com/package/@signordev/arc-onboard)
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg?style=flat-square)](LICENSE)
+[![CI](https://img.shields.io/github/actions/workflow/status/Signor1/arc-onboard/ci.yml?branch=main&style=flat-square&label=CI)](https://github.com/Signor1/arc-onboard/actions/workflows/ci.yml)
+[![CodeQL](https://img.shields.io/github/actions/workflow/status/Signor1/arc-onboard/codeql.yml?branch=main&style=flat-square&label=CodeQL)](https://github.com/Signor1/arc-onboard/actions/workflows/codeql.yml)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](CONTRIBUTING.md)
+
 A guided wizard that takes a brand-new developer from "I have a Circle API key" to a funded dev-controlled wallet on Arc Testnet, ready to send transfers in one tab, with no copy-paste from the docs.
+
+> **Open source under MIT.** Issues, suggestions, and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ```
 ┌─────────────────────────────────────────────────┐
@@ -26,27 +34,44 @@ The Circle dev-controlled wallets quickstart asks a first-time dev to juggle:
 
 That is too many context switches between docs, a terminal, and Circle Console. This wizard collapses all of it into a single guided flow with a Swagger-style request inspector so you see exactly what is sent to Circle.
 
-## Two ways to run it
+## Quickstart
 
-### Recommended: local mode (`npx`)
+Two ways to run it. Both keep your credentials entirely on your machine — they only travel from your browser to your own localhost server, which then talks to Circle. No third-party server ever sees them. Same security posture as `prisma studio` or `vercel dev`.
+
+### Option A — `npx` (no install)
 
 ```bash
-npx arc-onboard
+npx @signordev/arc-onboard
 ```
 
-Spawns a Next.js server on `127.0.0.1:<random>`, opens your browser. Your API key + entity secret stay entirely on your machine, they only travel from your browser to your own localhost server, which then talks to Circle. No third-party server ever sees them. Same security posture as `prisma studio` or `vercel dev`.
+Spawns a local server on a random `127.0.0.1` port and opens your browser. Requires [Node.js 20+](https://nodejs.org/).
 
-### Hosted mode (deep-link checklist)
+### Option B — clone and run
 
-If you set `NEXT_PUBLIC_ARC_ONBOARD_MODE=hosted` and deploy this app, the wizard switches to a "smart checklist" that **never proxies your credentials**. Sensitive operations are handed off to [console.circle.com](https://console.circle.com) via deep-links; the wizard generates your entity secret in the browser and walks you through pasting it into Circle's own UI.
+```bash
+git clone https://github.com/Signor1/arc-onboard.git
+cd arc-onboard
+pnpm install
+pnpm dev
+```
 
-| Step                     | Local mode                 | Hosted mode                              |
-| ------------------------ | -------------------------- | ---------------------------------------- |
-| Generate entity secret   | Browser (`crypto.getRandomValues`) | Browser (`crypto.getRandomValues`) |
-| Register entity secret   | Localhost API → Circle     | User pastes into Circle Console          |
-| Create wallet set/wallet | Localhost API → Circle     | User creates in Circle Console           |
-| Recovery file            | Auto-downloaded            | Saved from Circle Console                |
-| Trust required           | Your own machine           | Just Circle (we never see your key)      |
+Open http://localhost:3000. Use this if you want hot-reload, want to read the code, or want to fork it.
+
+### Optional: hosted "deep-link checklist" mode
+
+If you ever deploy this app behind `NEXT_PUBLIC_ARC_ONBOARD_MODE=hosted`, the wizard switches to a smart checklist that **never proxies your credentials**. Sensitive operations are handed off to [console.circle.com](https://console.circle.com) via deep-links; the wizard generates your entity secret in the browser and walks you through pasting it into Circle's own UI. This is opt-in only — the default cloned setup is the local-server flow above.
+
+```bash
+NEXT_PUBLIC_ARC_ONBOARD_MODE=hosted pnpm dev
+```
+
+| Step                     | Local mode (default)               | Hosted mode                              |
+| ------------------------ | ---------------------------------- | ---------------------------------------- |
+| Generate entity secret   | Browser (`crypto.getRandomValues`) | Browser (`crypto.getRandomValues`)       |
+| Register entity secret   | Localhost API → Circle             | User pastes into Circle Console          |
+| Create wallet set/wallet | Localhost API → Circle             | User creates in Circle Console           |
+| Recovery file            | Auto-downloaded                    | Saved from Circle Console                |
+| Trust required           | Your own machine                   | Just Circle (we never see your key)      |
 
 ## Security model
 
@@ -62,14 +87,14 @@ If you are evaluating whether to trust this code, the request flow is small enou
 - `src/lib/circle.ts` — the only place credentials touch the SDK.
 - `src/lib/api-client.ts` — the only place the browser calls our server.
 
-## Local development
+## Scripts
 
-```bash
-pnpm install
-pnpm dev          # start dev server with HMR
-pnpm build        # produce .next/standalone for npx packaging
-pnpm typecheck    # strict tsc
-```
+| Script           | What it does                                                          |
+| ---------------- | --------------------------------------------------------------------- |
+| `pnpm dev`       | Dev server with hot reload (port 3000) — primary path                 |
+| `pnpm build`     | Production build                                                      |
+| `pnpm start`     | Start a built app on port 3000 (requires prior `pnpm build`)          |
+| `pnpm typecheck` | Strict `tsc --noEmit`                                                 |
 
 ## Stack
 
@@ -81,4 +106,18 @@ pnpm typecheck    # strict tsc
 
 ## Status
 
-Initial release covers Arc Testnet and the EVM testnets supported by Circle's faucet. Mainnet is not exposed by the wizard on purpose — onboard there once you've validated your flow on testnet.
+Initial release covers Arc Testnet and the EVM testnets supported by Circle's faucet, plus Solana Devnet. Mainnet is not exposed by the wizard on purpose — onboard there once you've validated your flow on testnet.
+
+## Contributing
+
+Arc Onboard is community-maintained. Anyone can:
+
+- File a bug or feature request → [open an issue](https://github.com/Signor1/arc-onboard/issues).
+- Improve the code → fork, branch off `main`, open a pull request.
+- Improve the docs → same flow; small docs PRs are very welcome.
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, project layout, PR conventions, and the security-disclosure flow. The `main` branch is protected — every change lands via PR review, including from the maintainer.
+
+## License
+
+[MIT](LICENSE) · Built by [SignorDev](https://github.com/Signor1)

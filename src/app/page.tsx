@@ -55,7 +55,7 @@ export default function Page() {
       </main>
       <footer className="border-t py-4 text-center text-xs text-muted-foreground">
         Arc Onboard · Opensource · Built by <a
-          href="https://github.com/signor1"
+          href="https://github.com/Signor1"
           target="_blank"
           rel="noreferrer"
           className="text-xs underline"

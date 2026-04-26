@@ -11,6 +11,7 @@ import { MODE } from "@/lib/mode";
 import { ExternalLink, Copy, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
+import { chainByCode, explorerAddressUrl } from "@/lib/chains";
 
 type Resp = {
   tokenBalances: Array<{
@@ -20,7 +21,8 @@ type Resp = {
 };
 
 export function StepFund() {
-  const { apiKey, entitySecret, wallet, next, prev } = useWizard();
+  const { apiKey, entitySecret, wallet, blockchain, next, prev } = useWizard();
+  const chain = chainByCode(blockchain);
   const [balances, setBalances] = useState<Resp["tokenBalances"]>([]);
 
   const check = useMutation({
@@ -32,13 +34,13 @@ export function StepFund() {
       }),
     onSuccess: (data) => {
       setBalances(data.tokenBalances ?? []);
-      const usdc = data.tokenBalances?.find(
-        (b) => b.token?.symbol === "USDC"
-      );
+      const usdc = data.tokenBalances?.find((b) => b.token?.symbol === "USDC");
       if (usdc && parseFloat(usdc.amount) > 0) {
         toast.success(`USDC balance: ${usdc.amount}`);
       } else {
-        toast.message("No USDC yet — wait a moment after using the faucet, then refresh.");
+        toast.message(
+          "No USDC yet — wait a moment after using the faucet, then refresh."
+        );
       }
     },
     onError: (err: Error) => toast.error(err.message),
@@ -54,27 +56,42 @@ export function StepFund() {
           Fund the wallet via faucet
         </h1>
         <p className="text-muted-foreground mt-1">
-          Open the Circle faucet, paste your wallet address, and request USDC.
-          Then come back here and refresh the balance.
+          Open the Circle faucet, paste your wallet address, and request USDC
+          on <strong>{chain.label}</strong>. Then come back and refresh the
+          balance.
         </p>
       </div>
 
       <Card>
         <CardContent className="p-5 space-y-4">
           <div className="rounded-md border bg-muted/40 p-3 flex items-center justify-between gap-3 flex-wrap">
-            <span className="font-mono text-xs break-all">{wallet?.address}</span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={async () => {
-                if (wallet?.address) {
-                  await navigator.clipboard.writeText(wallet.address);
-                  toast.success("Address copied");
-                }
-              }}
-            >
-              <Copy className="h-3.5 w-3.5" /> Copy
-            </Button>
+            <span className="font-mono text-xs break-all">
+              {wallet?.address}
+            </span>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  if (wallet?.address) {
+                    await navigator.clipboard.writeText(wallet.address);
+                    toast.success("Address copied");
+                  }
+                }}
+              >
+                <Copy className="h-3.5 w-3.5" /> Copy
+              </Button>
+              {wallet?.address && chain.explorerAddressBase && (
+                <a
+                  href={explorerAddressUrl(chain, wallet.address)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center text-xs text-primary underline ml-2"
+                >
+                  Explorer <ExternalLink className="h-3 w-3 ml-1" />
+                </a>
+              )}
+            </div>
           </div>
 
           <ol className="list-decimal pl-5 space-y-2 text-sm">
@@ -90,10 +107,13 @@ export function StepFund() {
               </a>
             </li>
             <li>
-              Choose <strong>Arc Testnet</strong> (or your selected chain) and
-              paste your address.
+              Choose <strong>{chain.label}</strong> and paste your address.
             </li>
-            <li>Click <strong>Send USDC</strong>.</li>
+            <li>
+              Click <strong>Send USDC</strong>. The faucet page also shows the
+              canonical USDC contract address for this chain — copy it if you
+              need it for the transfer step.
+            </li>
             <li>Wait ~10s, then check the balance below.</li>
           </ol>
 
@@ -114,8 +134,14 @@ export function StepFund() {
                       key={i}
                       className="flex items-center justify-between text-sm border-b py-1.5 last:border-0"
                     >
-                      <span className="font-mono">{b.token?.symbol ?? "?"}</span>
-                      <Badge variant={b.token?.symbol === "USDC" ? "success" : "outline"}>
+                      <span className="font-mono">
+                        {b.token?.symbol ?? "?"}
+                      </span>
+                      <Badge
+                        variant={
+                          b.token?.symbol === "USDC" ? "success" : "outline"
+                        }
+                      >
                         {b.amount}
                       </Badge>
                     </div>
@@ -125,16 +151,8 @@ export function StepFund() {
             </>
           ) : (
             <p className="text-xs text-muted-foreground">
-              Verify your funded balance directly in the{" "}
-              <a
-                className="underline"
-                href="https://testnet.arcscan.app"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Arc explorer
-              </a>{" "}
-              before continuing.
+              Verify your funded balance directly on the explorer before
+              continuing.
             </p>
           )}
         </CardContent>

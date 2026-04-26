@@ -5,3 +5,9 @@ node_modules
 out
 *.log
 .DS_Store
+
+# Defense in depth: recovery files / entity secrets must never enter git.
+*.dat
+recovery*
+entity_secret*
+entity-secret*

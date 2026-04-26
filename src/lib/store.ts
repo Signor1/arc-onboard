@@ -2,14 +2,10 @@
 
 import { create } from "zustand";
 
-export type Blockchain =
-  | "ARC-TESTNET"
-  | "ETH-SEPOLIA"
-  | "BASE-SEPOLIA"
-  | "MATIC-AMOY"
-  | "ARB-SEPOLIA"
-  | "OP-SEPOLIA"
-  | "AVAX-FUJI";
+// Blockchain codes are validated against the chain config in `lib/chains.ts`.
+// Kept as a plain string so adding a chain to chains.ts doesn't require a
+// matching type-system change.
+export type Blockchain = string;
 
 export type AccountType = "EOA" | "SCA";
 
@@ -30,10 +26,13 @@ type WalletInfo = {
   accountType: string;
 };
 
+export type EntitySecretSource = "generated" | "existing";
+
 type State = {
   step: number;
   apiKey: string;
   entitySecret: string;
+  entitySecretSource?: EntitySecretSource;
   registered: boolean;
   recoveryFileSaved: boolean;
   walletSetId: string;
@@ -55,6 +54,7 @@ const initial = {
   step: 0,
   apiKey: "",
   entitySecret: "",
+  entitySecretSource: undefined as EntitySecretSource | undefined,
   registered: false,
   recoveryFileSaved: false,
   walletSetId: "",

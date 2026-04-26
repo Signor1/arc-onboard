@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -14,22 +14,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FooterNav } from "../footer-nav";
-import { useWizard, type Blockchain, type AccountType } from "@/lib/store";
+import { useWizard, type AccountType } from "@/lib/store";
 import { useMutation } from "@tanstack/react-query";
 import { callApi } from "@/lib/api-client";
 import { MODE } from "@/lib/mode";
 import { ExternalLink, Copy } from "lucide-react";
 import { toast } from "sonner";
-
-const CHAINS: { value: Blockchain; label: string }[] = [
-  { value: "ARC-TESTNET", label: "Arc Testnet (recommended)" },
-  { value: "ETH-SEPOLIA", label: "Ethereum Sepolia" },
-  { value: "BASE-SEPOLIA", label: "Base Sepolia" },
-  { value: "MATIC-AMOY", label: "Polygon Amoy" },
-  { value: "ARB-SEPOLIA", label: "Arbitrum Sepolia" },
-  { value: "OP-SEPOLIA", label: "Optimism Sepolia" },
-  { value: "AVAX-FUJI", label: "Avalanche Fuji" },
-];
+import { CHAINS, chainByCode } from "@/lib/chains";
 
 type Resp = {
   wallets: Array<{
@@ -52,6 +43,15 @@ export function StepCreateWallet() {
     next,
     prev,
   } = useWizard();
+  const chain = chainByCode(blockchain);
+
+  // If the current accountType isn't valid for the picked chain (e.g. user
+  // had SCA selected then switched to Solana), force it to the first allowed.
+  useEffect(() => {
+    if (!chain.accountTypes.includes(accountType as AccountType)) {
+      set({ accountType: chain.accountTypes[0] });
+    }
+  }, [chain.code]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const create = useMutation({
     mutationFn: () =>
@@ -87,9 +87,13 @@ export function StepCreateWallet() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Create a wallet</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Create a wallet
+        </h1>
         <p className="text-muted-foreground mt-1">
-          Pick a chain and account type. EOA is recommended for getting started.
+          Pick a chain and account type. The chain controls the address
+          format, gas token, USDC contract, and explorer used in the rest of
+          the wizard.
         </p>
       </div>
 
@@ -99,7 +103,7 @@ export function StepCreateWallet() {
             <Label>Blockchain</Label>
             <Select
               value={blockchain}
-              onValueChange={(v) => set({ blockchain: v as Blockchain })}
+              onValueChange={(v) => set({ blockchain: v })}
               disabled={!!wallet}
             >
               <SelectTrigger>
@@ -107,12 +111,16 @@ export function StepCreateWallet() {
               </SelectTrigger>
               <SelectContent>
                 {CHAINS.map((c) => (
-                  <SelectItem key={c.value} value={c.value}>
+                  <SelectItem key={c.code} value={c.code}>
                     {c.label}
+                    {c.code === "ARC-TESTNET" && " (recommended)"}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {chain.note && (
+              <p className="text-xs text-muted-foreground">{chain.note}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -123,8 +131,17 @@ export function StepCreateWallet() {
               className="grid grid-cols-2 gap-3"
               disabled={!!wallet}
             >
-              <label className="flex items-start gap-3 rounded-md border p-3 cursor-pointer">
-                <RadioGroupItem value="EOA" />
+              <label
+                className={`flex items-start gap-3 rounded-md border p-3 ${
+                  chain.accountTypes.includes("EOA")
+                    ? "cursor-pointer"
+                    : "opacity-50 cursor-not-allowed"
+                }`}
+              >
+                <RadioGroupItem
+                  value="EOA"
+                  disabled={!chain.accountTypes.includes("EOA")}
+                />
                 <div>
                   <div className="text-sm font-medium">EOA</div>
                   <div className="text-xs text-muted-foreground">
@@ -132,12 +149,26 @@ export function StepCreateWallet() {
                   </div>
                 </div>
               </label>
-              <label className="flex items-start gap-3 rounded-md border p-3 cursor-pointer">
-                <RadioGroupItem value="SCA" />
+              <label
+                className={`flex items-start gap-3 rounded-md border p-3 ${
+                  chain.accountTypes.includes("SCA")
+                    ? "cursor-pointer"
+                    : "opacity-50 cursor-not-allowed"
+                }`}
+              >
+                <RadioGroupItem
+                  value="SCA"
+                  disabled={!chain.accountTypes.includes("SCA")}
+                />
                 <div>
                   <div className="text-sm font-medium">SCA</div>
                   <div className="text-xs text-muted-foreground">
-                    Smart contract account. Supports gas sponsorship + batching.
+                    Smart contract account. Gas sponsorship + batching.
+                    {!chain.accountTypes.includes("SCA") && (
+                      <span className="block text-amber-500 mt-0.5">
+                        Not available on {chain.label}.
+                      </span>
+                    )}
                   </div>
                 </div>
               </label>
@@ -184,9 +215,11 @@ export function StepCreateWallet() {
 }
 
 function HostedCreateWallet() {
-  const { wallet, set, next, prev } = useWizard();
+  const { wallet, blockchain, set, next, prev } = useWizard();
+  const chain = chainByCode(blockchain);
   const [addr, setAddr] = useState(wallet?.address ?? "");
   const [id, setId] = useState(wallet?.id ?? "");
+  const valid = chain.addressRegex.test(addr);
   return (
     <div className="space-y-6">
       <div>
@@ -209,7 +242,10 @@ function HostedCreateWallet() {
               </a>{" "}
               and click <strong>Create wallet</strong>.
             </li>
-            <li>Pick <strong>Arc Testnet</strong>, account type <strong>EOA</strong>.</li>
+            <li>
+              Pick <strong>{chain.label}</strong>, account type{" "}
+              <strong>{chain.accountTypes[0]}</strong>.
+            </li>
             <li>Copy the wallet ID and address back here.</li>
           </ol>
           <div className="grid grid-cols-1 gap-3">
@@ -229,7 +265,7 @@ function HostedCreateWallet() {
                 value={addr}
                 onChange={(e) => setAddr(e.target.value.trim())}
                 className="font-mono"
-                placeholder="0x..."
+                placeholder={chain.addressHint}
               />
             </div>
           </div>
@@ -242,13 +278,13 @@ function HostedCreateWallet() {
             wallet: {
               id,
               address: addr,
-              blockchain: "ARC-TESTNET",
-              accountType: "EOA",
+              blockchain: chain.code,
+              accountType: chain.accountTypes[0],
             },
           });
           next();
         }}
-        nextDisabled={!id || !/^0x[a-fA-F0-9]{40}$/.test(addr)}
+        nextDisabled={!id || !valid}
       />
     </div>
   );
