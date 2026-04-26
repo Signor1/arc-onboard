@@ -1,0 +1,34 @@
+version: 2
+updates:
+  # npm dependencies — group minor + patch into a single PR each week so the
+  # review surface stays small. Major bumps still come as their own PR.
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+    # Don't auto-bump these — they're load-bearing and benefit from human
+    # review even on minor versions.
+    ignore:
+      - dependency-name: next
+        update-types: [version-update:semver-major]
+      - dependency-name: react
+        update-types: [version-update:semver-major]
+      - dependency-name: react-dom
+        update-types: [version-update:semver-major]
+      - dependency-name: "@circle-fin/developer-controlled-wallets"
+        update-types: [version-update:semver-major]
+
+  # Keep workflow action versions current.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5

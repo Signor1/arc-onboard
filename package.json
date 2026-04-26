@@ -1,7 +1,37 @@
 {
-  "name": "arc-onboard",
+  "name": "@signordev/arc-onboard",
   "version": "0.1.0",
-  "description": "Guided onboarding wizard for Circle dev-controlled wallets on Arc",
+  "description": "Guided onboarding wizard for Circle dev-controlled wallets on Arc Testnet and other Circle-supported testnets.",
+  "license": "MIT",
+  "author": "SignorDev (https://github.com/Signor1)",
+  "homepage": "https://github.com/Signor1/arc-onboard#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Signor1/arc-onboard.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Signor1/arc-onboard/issues"
+  },
+  "keywords": [
+    "circle",
+    "arc",
+    "arc-network",
+    "arc-testnet",
+    "wallets",
+    "developer-controlled-wallets",
+    "usdc",
+    "blockchain",
+    "onboarding",
+    "wizard",
+    "cli",
+    "developer-tools"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "bin": {
     "arc-onboard": "bin/arc-onboard.js"
   },
@@ -9,14 +39,19 @@
     "bin",
     ".next/standalone",
     ".next/static",
-    "public"
+    "public",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "launch": "next build && node bin/arc-onboard.js",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "next build",
+    "prepack": "next build"
   },
   "dependencies": {
     "@circle-fin/developer-controlled-wallets": "^9.0.0",

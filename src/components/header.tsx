@@ -24,7 +24,7 @@ export function Header() {
           </Badge>
         </div>
 
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center gap-4">
           <a
             href="https://github.com/circlefin/developer-controlled-wallets-nodejs-sdk"
             target="_blank"
@@ -35,7 +35,7 @@ export function Header() {
           </a>
 
           <a
-            href="https://github.com/circlefin/developer-controlled-wallets-nodejs-sdk"
+            href="https://github.com/Signor1/arc-onboard"
             target="_blank"
             rel="noreferrer"
             className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
