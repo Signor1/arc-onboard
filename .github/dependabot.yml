@@ -13,8 +13,8 @@ updates:
         update-types:
           - minor
           - patch
-    # Don't auto-bump these — they're load-bearing and benefit from human
-    # review even on minor versions.
+    # Don't auto-bump these on majors — they're load-bearing or have known
+    # breaking-change patterns, and benefit from human review.
     ignore:
       - dependency-name: next
         update-types: [version-update:semver-major]
@@ -23,6 +23,11 @@ updates:
       - dependency-name: react-dom
         update-types: [version-update:semver-major]
       - dependency-name: "@circle-fin/developer-controlled-wallets"
+        update-types: [version-update:semver-major]
+      # lucide-react v1 dropped brand icons (Github, Twitter, etc.) — any 0.x
+      # → 1.x bump will break our header. Upgrade manually when we have a
+      # replacement plan for the icon.
+      - dependency-name: lucide-react
         update-types: [version-update:semver-major]
 
   # Keep workflow action versions current.
