@@ -1,6 +1,6 @@
 {
   "name": "@signordev/arc-onboard",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Guided onboarding wizard for Circle dev-controlled wallets on Arc Testnet and other Circle-supported testnets.",
   "license": "MIT",
   "author": "SignorDev (https://github.com/Signor1)",
