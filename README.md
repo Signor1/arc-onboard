@@ -108,6 +108,15 @@ If you are evaluating whether to trust this code, the request flow is small enou
 
 Initial release covers Arc Testnet and the EVM testnets supported by Circle's faucet, plus Solana Devnet. Mainnet is not exposed by the wizard on purpose — onboard there once you've validated your flow on testnet.
 
+## Looking for user-controlled wallets?
+
+Arc Onboard focuses on **dev-controlled** wallets — you (the developer) hold the keys and operate wallets on behalf of users. If you're building a consumer app where end users own and approve their own transactions with PIN / email / social login, that's a different Circle product (user-controlled wallets). Start with Circle's official reference implementation:
+
+- **[`circlefin/w3s-sample-user-controlled-client-web`](https://github.com/circlefin/w3s-sample-user-controlled-client-web)** — Next.js sample app demonstrating the full flow: authentication, PIN setup, wallet creation, transactions, and gasless support via the `@circle-fin/w3s-pw-web-sdk`.
+- **[Circle's user-controlled quickstart](https://developers.circle.com/wallets/user-controlled)** — concept docs and integration guide.
+
+You can mix the two: use dev-controlled wallets for treasury/payouts and user-controlled wallets for consumer accounts in the same app.
+
 ## Contributing
 
 Arc Onboard is community-maintained. Anyone can:
